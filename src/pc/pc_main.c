@@ -59,6 +59,7 @@ void send_display_list(struct SPTask *spTask) {
 #define printf
 
 void produce_one_frame(void) {
+	int i;
     gfx_start_frame();
     game_loop_one_iteration();
     
@@ -66,7 +67,7 @@ void produce_one_frame(void) {
     u32 num_audio_samples = samples_left < audio_api->get_desired_buffered() ? 544 : 528;
     //printf("Audio samples: %d %u\n", samples_left, num_audio_samples);
     s16 audio_buffer[544 * 2 * 2];
-    for (int i = 0; i < 2; i++) {
+    for (i = 0; i < 2; i++) {
         /*if (audio_cnt-- == 0) {
             audio_cnt = 2;
         }

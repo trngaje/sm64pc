@@ -119,7 +119,17 @@ s32 osEepromLongRead(UNUSED OSMesgQueue *mq, u8 address, u8 *buffer, int nbytes)
         ret = 0;
     }
 #else
-    FILE *fp = fopen("sm64_save_file.bin", "rb");
+	FILE *fp;
+	char home_path[512], conf_path[256], file_path[1024];
+	
+	snprintf(conf_path, sizeof(conf_path), "%s/.config", getenv("HOME"));
+	snprintf(home_path, sizeof(home_path), "%s/.config/sm64", getenv("HOME"));
+	snprintf(file_path, sizeof(file_path), "%s/sm64_save_file.bin", home_path);
+	
+	mkdir(conf_path, 0755);
+	mkdir(home_path, 0755);
+	
+	fp = fopen(file_path, "rb");
     if (fp == NULL) {
         return -1;
     }
@@ -149,7 +159,17 @@ s32 osEepromLongWrite(UNUSED OSMesgQueue *mq, u8 address, u8 *buffer, int nbytes
     }, content);
     s32 ret = 0;
 #else
-    FILE* fp = fopen("sm64_save_file.bin", "wb");
+	FILE *fp;
+	char home_path[512], conf_path[256], file_path[1024];
+	
+	snprintf(conf_path, sizeof(conf_path), "%s/.config", getenv("HOME"));
+	snprintf(home_path, sizeof(home_path), "%s/.config/sm64", getenv("HOME"));
+	snprintf(file_path, sizeof(file_path), "%s/sm64_save_file.bin", home_path);
+	
+	mkdir(conf_path, 0755);
+	mkdir(home_path, 0755);
+
+	fp = fopen(file_path, "wb");
     if (fp == NULL) {
         return -1;
     }

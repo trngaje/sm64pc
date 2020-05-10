@@ -14,11 +14,15 @@
 static bool init_ok;
 static SDL_GameController *sdl_cntrl;
 
+SDL_Joystick* joy;
+
 static void controller_sdl_init(void) {
     if (SDL_Init(SDL_INIT_GAMECONTROLLER) != 0) {
         fprintf(stderr, "SDL init error: %s\n", SDL_GetError());
         return;
     }
+    
+    joy = SDL_JoystickOpen(0);
 
     init_ok = true;
 }
@@ -27,8 +31,10 @@ static void controller_sdl_read(OSContPad *pad) {
     if (!init_ok) {
         return;
     }
+    
+    SDL_JoystickUpdate();
 
-    SDL_GameControllerUpdate();
+   /* SDL_GameControllerUpdate();
 
     if (sdl_cntrl != NULL && !SDL_GameControllerGetAttached(sdl_cntrl)) {
         SDL_GameControllerClose(sdl_cntrl);
@@ -52,16 +58,45 @@ static void controller_sdl_read(OSContPad *pad) {
     if (SDL_GameControllerGetButton(sdl_cntrl, SDL_CONTROLLER_BUTTON_LEFTSHOULDER)) pad->button |= Z_TRIG;
     if (SDL_GameControllerGetButton(sdl_cntrl, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER)) pad->button |= R_TRIG;
     if (SDL_GameControllerGetButton(sdl_cntrl, SDL_CONTROLLER_BUTTON_A)) pad->button |= A_BUTTON;
-    if (SDL_GameControllerGetButton(sdl_cntrl, SDL_CONTROLLER_BUTTON_X)) pad->button |= B_BUTTON;
+    if (SDL_GameControllerGetButton(sdl_cntrl, SDL_CONTROLLER_BUTTON_X)) pad->button |= B_BUTTON;*/
 
-    int16_t leftx = SDL_GameControllerGetAxis(sdl_cntrl, SDL_CONTROLLER_AXIS_LEFTX);
+   /* int16_t leftx = SDL_GameControllerGetAxis(sdl_cntrl, SDL_CONTROLLER_AXIS_LEFTX);
     int16_t lefty = SDL_GameControllerGetAxis(sdl_cntrl, SDL_CONTROLLER_AXIS_LEFTY);
     int16_t rightx = SDL_GameControllerGetAxis(sdl_cntrl, SDL_CONTROLLER_AXIS_RIGHTX);
-    int16_t righty = SDL_GameControllerGetAxis(sdl_cntrl, SDL_CONTROLLER_AXIS_RIGHTY);
-
-    int16_t ltrig = SDL_GameControllerGetAxis(sdl_cntrl, SDL_CONTROLLER_AXIS_TRIGGERLEFT);
-    int16_t rtrig = SDL_GameControllerGetAxis(sdl_cntrl, SDL_CONTROLLER_AXIS_TRIGGERRIGHT);
-
+    int16_t righty = SDL_GameControllerGetAxis(sdl_cntrl, SDL_CONTROLLER_AXIS_RIGHTY);*/
+    
+	int16_t leftx = SDL_JoystickGetAxis(joy, 0);
+	int16_t lefty = SDL_JoystickGetAxis(joy, 1);
+	int16_t rightx = SDL_JoystickGetAxis(joy, 2);
+	int16_t righty = SDL_JoystickGetAxis(joy, 3);
+	
+	SDL_Event event;
+	while (SDL_PollEvent(&event))
+	{
+		switch (event.type)
+		{
+			case SDL_KEYUP:
+			switch(event.key.keysym.sym) 
+			{
+				case SDLK_HOME:
+				case SDLK_RCTRL:
+				case SDLK_ESCAPE:
+					exit(0);
+				break;
+				default:
+				break;
+			}
+			break;
+			case SDL_QUIT:
+			{
+				exit(0);
+				break;
+			}
+		}
+	}
+	
+    /*int16_t ltrig = SDL_GameControllerGetAxis(sdl_cntrl, SDL_CONTROLLER_AXIS_TRIGGERLEFT);
+    int16_t rtrig = SDL_GameControllerGetAxis(sdl_cntrl, SDL_CONTROLLER_AXIS_TRIGGERRIGHT);*/
 #ifdef TARGET_WEB
     // Firefox has a bug: https://bugzilla.mozilla.org/show_bug.cgi?id=1606562
     // It sets down y to 32768.0f / 32767.0f, which is greater than the allowed 1.0f,
@@ -81,8 +116,8 @@ static void controller_sdl_read(OSContPad *pad) {
     if (righty < -0x4000) pad->button |= U_CBUTTONS;
     if (righty > 0x4000) pad->button |= D_CBUTTONS;
 
-    if (ltrig > 30 * 256) pad->button |= Z_TRIG;
-    if (rtrig > 30 * 256) pad->button |= R_TRIG;
+   /* if (ltrig > 30 * 256) pad->button |= Z_TRIG;
+    if (rtrig > 30 * 256) pad->button |= R_TRIG;*/
 
     uint32_t magnitude_sq = (uint32_t)(leftx * leftx) + (uint32_t)(lefty * lefty);
     if (magnitude_sq > (uint32_t)(DEADZONE * DEADZONE)) {

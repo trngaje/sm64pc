@@ -1,0 +1,31 @@
+#!/bin/sh
+
+mkdir -p opk
+cp ../build/us_pc/sm64.us.f3dex2e opk/sm64.us.f3dex2e
+cp ./mario.png opk/mario.png
+
+# https://unix.stackexchange.com/questions/219268/how-to-add-new-lines-when-using-echo
+print()
+	case    ${IFS- } in
+	(\ *)   printf  %b\\n "$*";;
+	(*)     IFS=\ $IFS
+	printf  %b\\n "$*"
+	IFS=${IFS#?}
+esac
+
+# Create GmenuNx entry file plus other things
+
+print '[Desktop Entry]
+Type=Application
+Name=Super Mario 64
+Comment=SM64 port by Gameblabla
+Exec=sm64.us.f3dex2e
+Icon=mario
+Terminal=false
+Type=Application
+Categories=games;
+X-OD-NeedsDownscaling=true' > opk/default.gcw0.desktop
+
+mksquashfs ./opk mario_gcw0.opk -all-root -noappend -no-exports -no-xattrs
+
+rm -r opk

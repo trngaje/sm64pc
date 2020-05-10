@@ -31,20 +31,20 @@ struct ConfigOption {
  */
 bool configFullscreen            = false;
 // Keyboard mappings (scancode values)
-unsigned int configKeyA          = 0x26;
-unsigned int configKeyB          = 0x33;
-unsigned int configKeyStart      = 0x39;
+unsigned int configKeyA          = 285;
+unsigned int configKeyB          = 312;
+unsigned int configKeyStart      = 284;
 unsigned int configKeyL          = 0x34;
-unsigned int configKeyR          = 0x36;
-unsigned int configKeyZ          = 0x25;
+unsigned int configKeyR          = 0x0E;
+unsigned int configKeyZ          = 0x0F;
 unsigned int configKeyCUp        = 0x148;
 unsigned int configKeyCDown      = 0x150;
-unsigned int configKeyCLeft      = 0x14B;
-unsigned int configKeyCRight     = 0x14D;
-unsigned int configKeyStickUp    = 0x11;
-unsigned int configKeyStickDown  = 0x1F;
-unsigned int configKeyStickLeft  = 0x1E;
-unsigned int configKeyStickRight = 0x20;
+unsigned int configKeyCLeft      = 0x2A;
+unsigned int configKeyCRight     = 0x39;
+unsigned int configKeyStickUp    = 72;
+unsigned int configKeyStickDown  = 80;
+unsigned int configKeyStickLeft  = 75;
+unsigned int configKeyStickRight = 77;
 
 
 static const struct ConfigOption options[] = {
