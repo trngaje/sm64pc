@@ -27,12 +27,53 @@ extern u8 newcam_mouse;
 static bool init_ok;
 static SDL_GameController *sdl_cntrl;
 
+static SDL_Joystick *joy = NULL;	
+
+enum{
+		OGA_BUTTON_B=0,
+		OGA_BUTTON_A,
+		OGA_BUTTON_X,
+		OGA_BUTTON_Y,
+		OGA_BUTTON_L,
+		OGA_BUTTON_R,
+		OGA_BUTTON_UP,
+		OGA_BUTTON_DOWN,
+		OGA_BUTTON_LEFT,
+		OGA_BUTTON_RIGHT,
+		OGA_BUTTON_F1,
+		OGA_BUTTON_F2,
+		OGA_BUTTON_F3,
+		OGA_BUTTON_F4,
+		OGA_BUTTON_F5,
+		OGA_BUTTON_F6
+};
+
 static void controller_sdl_init(void) {
-    if (SDL_Init(SDL_INIT_GAMECONTROLLER | SDL_INIT_EVENTS) != 0) {
+    if (SDL_Init(/*SDL_INIT_GAMECONTROLLER | */ SDL_INIT_JOYSTICK | SDL_INIT_EVENTS) != 0) {
         fprintf(stderr, "SDL init error: %s\n", SDL_GetError());
         return;
     }
+	
+	// Initialize the joystick subsystem
+	SDL_InitSubSystem(SDL_INIT_JOYSTICK);
 
+	if (SDL_NumJoysticks() > 0)
+	{	
+		SDL_JoystickEventState(SDL_ENABLE);
+		joy = SDL_JoystickOpen(0);
+		
+		if (joy) {
+			printf("Opened Joystick 0\n");
+			printf("Name: %s\n", SDL_JoystickNameForIndex(0));
+			printf("Number of Axes: %d\n", SDL_JoystickNumAxes(joy));
+			printf("Number of Buttons: %d\n", SDL_JoystickNumButtons(joy));
+			printf("Number of Balls: %d\n", SDL_JoystickNumBalls(joy));
+		} else {
+			printf("Couldn't open Joystick 0\n");
+		}
+	}
+		
+	
 #ifdef BETTERCAMERA
     if (newcam_mouse == 1)
         SDL_SetRelativeMouseMode(SDL_TRUE);
@@ -62,7 +103,43 @@ static void controller_sdl_read(OSContPad *pad) {
     if (configMouseZ && (mbuttons & SDL_BUTTON(configMouseZ))) pad->button |= Z_TRIG;
 #endif
 
+
+
+
+#if 1
+	SDL_JoystickUpdate(); 
+
+	if (SDL_JoystickGetButton(joy, OGA_BUTTON_F4)) pad->button |= START_BUTTON;
+	if (SDL_JoystickGetButton(joy, OGA_BUTTON_L))     pad->button |= Z_TRIG;
+	if (SDL_JoystickGetButton(joy, OGA_BUTTON_F3))     pad->button |= L_TRIG;
+	if (SDL_JoystickGetButton(joy, OGA_BUTTON_R))     pad->button |= R_TRIG;
+	if (SDL_JoystickGetButton(joy, OGA_BUTTON_B))     pad->button |= A_BUTTON;
+	if (SDL_JoystickGetButton(joy, OGA_BUTTON_Y))     pad->button |= B_BUTTON;
+
+	if (SDL_JoystickGetButton(joy, OGA_BUTTON_X)) pad->button |= L_CBUTTONS;
+	if (SDL_JoystickGetButton(joy, OGA_BUTTON_F6)) pad->button |= R_CBUTTONS;
+	if (SDL_JoystickGetButton(joy, OGA_BUTTON_F5)) pad->button |= U_CBUTTONS;
+	if (SDL_JoystickGetButton(joy, OGA_BUTTON_A)) pad->button |= D_CBUTTONS;
+
+
+	if (SDL_JoystickGetButton(joy, OGA_BUTTON_LEFT)) pad->button |= L_JPAD;
+	if (SDL_JoystickGetButton(joy, OGA_BUTTON_RIGHT)) pad->button |= R_JPAD;
+	if (SDL_JoystickGetButton(joy, OGA_BUTTON_UP)) pad->button |= U_JPAD;
+	if (SDL_JoystickGetButton(joy, OGA_BUTTON_DOWN)) pad->button |= D_JPAD;
+
+	int16_t leftx = SDL_JoystickGetAxis(joy, 0);
+	int16_t lefty = SDL_JoystickGetAxis(joy, 1);
+
+	uint32_t magnitude_sq = (uint32_t)(leftx * leftx) + (uint32_t)(lefty * lefty);
+	if (magnitude_sq > (uint32_t)(DEADZONE * DEADZONE)) {
+		pad->stick_x = leftx / 0x100;
+		int stick_y = -lefty / 0x100;
+		pad->stick_y = stick_y == 128 ? 127 : stick_y;
+	}
+#else	
     SDL_GameControllerUpdate();
+
+	
 
     if (sdl_cntrl != NULL && !SDL_GameControllerGetAttached(sdl_cntrl)) {
         SDL_GameControllerClose(sdl_cntrl);
@@ -70,14 +147,22 @@ static void controller_sdl_read(OSContPad *pad) {
     }
     if (sdl_cntrl == NULL) {
         for (int i = 0; i < SDL_NumJoysticks(); i++) {
+			const char *name = SDL_GameControllerNameForIndex(i);
+			if (name) {
+				printf("Joystick %i has game controller name '%s'\n", i, name);
+			} else {
+				printf("Joystick %i has no game controller name.\n", i);
+			}			
             if (SDL_IsGameController(i)) {
                 sdl_cntrl = SDL_GameControllerOpen(i);
                 if (sdl_cntrl != NULL) {
+					printf("[trngaje] success\n");
                     break;
                 }
             }
         }
         if (sdl_cntrl == NULL) {
+			printf("[trngaje] sdl_cntrl is NULL\n");
             return;
         }
     }
@@ -125,6 +210,9 @@ static void controller_sdl_read(OSContPad *pad) {
         int stick_y = -lefty / 0x100;
         pad->stick_y = stick_y == 128 ? 127 : stick_y;
     }
+	
+	}
+#endif
 }
 
 struct ControllerAPI controller_sdl = {

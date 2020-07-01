@@ -133,9 +133,9 @@ endif
 # Default build is for PC now
 VERSION_CFLAGS := $(VERSION_CFLAGS) -DNON_MATCHING -DAVOID_UB
 
-ifeq ($(TARGET_RPI),1) # Define RPi to change SDL2 title & GLES2 hints
+#ifeq ($(TARGET_RPI),1) # Define RPi to change SDL2 title & GLES2 hints
       VERSION_CFLAGS += -DUSE_GLES
-endif
+#endif
 
 VERSION_ASFLAGS := --defsym AVOID_UB=1
 COMPARE := 0
@@ -463,7 +463,8 @@ else
 ifeq ($(TARGET_RPI),1)
 LDFLAGS := $(OPT_FLAGS) -lm -lGLESv2 `$(CROSS)sdl2-config --libs` -no-pie
 else
-LDFLAGS := $(BITS) -march=$(TARGET_ARCH) -lm -lGL `$(CROSS)sdl2-config --libs` -no-pie -lpthread
+LDFLAGS := $(BITS) -march=$(TARGET_ARCH) -lm -lGLESv2 `$(CROSS)sdl2-config --libs` -no-pie -lpthread
+#LDFLAGS := $(BITS) -march=$(TARGET_ARCH) -lm -lGL `$(CROSS)sdl2-config --libs` -no-pie -lpthread
 endif
 endif
 endif #Added for Pi ifeq
